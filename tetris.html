@@ -16,6 +16,8 @@
     --on-accent: #1E1505;
     --coin: #C28F0C;
     --coin-edge: #8A6205;
+    --slow: #2B7FA6;
+    --debuff: #C23F37;
     --well: #111727;
     --on-well: #E9EDF7;
     --t1: #D2443B; --t2: #D9761C; --t3: #B58E0E; --t4: #3B9A59; --t5: #1A95AE; --t6: #8A4FC7;
@@ -26,14 +28,14 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #0C1020; --panel: #141A2D; --line: #262E47; --ink: #E3E7F1; --muted: #8B93AF;
-      --accent: #F0B44A; --well: #070A14; --coin: #F4C63D; --coin-edge: #A97E12;
+      --accent: #F0B44A; --well: #070A14; --coin: #F4C63D; --coin-edge: #A97E12; --slow: #6CC4E8; --debuff: #F06A5F;
       --t1: #E4554C; --t2: #EE8F3A; --t3: #F1C644; --t4: #58C477; --t5: #3CC6DC; --t6: #A56BDD;
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
     --bg: #0C1020; --panel: #141A2D; --line: #262E47; --ink: #E3E7F1; --muted: #8B93AF;
-    --accent: #F0B44A; --well: #070A14; --coin: #F4C63D; --coin-edge: #A97E12;
+    --accent: #F0B44A; --well: #070A14; --coin: #F4C63D; --coin-edge: #A97E12; --slow: #6CC4E8; --debuff: #F06A5F;
     --t1: #E4554C; --t2: #EE8F3A; --t3: #F1C644; --t4: #58C477; --t5: #3CC6DC; --t6: #A56BDD;
     color-scheme: dark;
   }
@@ -202,31 +204,40 @@
     align-items: center;
     gap: 4px;
   }
+  .timers { width: 100%; height: 28px; display: flex; gap: 6px; }
   .boost {
-    width: 100%;
-    height: 28px;
-    display: flex;
+    --tc: var(--coin);
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+    display: none;
     align-items: center;
     gap: 8px;
     padding-inline: 10px;
     border-radius: 14px;
     background: var(--panel);
-    border: 1px solid var(--coin);
+    border: 1px solid var(--tc);
     font-size: 12px;
     font-weight: 600;
-    visibility: hidden;
   }
-  .boost.on { visibility: visible; }
+  .boost.slow { --tc: var(--slow); }
+  .boost.debuff { --tc: var(--debuff); background: color-mix(in srgb, var(--debuff) 12%, var(--panel)); }
+  .boost .ico { display: flex; color: var(--tc); flex: none; }
+  .boost .ico svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .boost.waiting .time { opacity: .6; }
+  .timers.many .boost .tag, .timers.many .boost .track { display: none; }
+  .timers.many .boost { justify-content: space-between; padding-inline: 8px; gap: 4px; }
+  .boost.on { display: flex; }
   .boost .tag {
     font-family: var(--f-display);
     font-weight: 700;
     letter-spacing: .06em;
     text-transform: uppercase;
     white-space: nowrap;
-    color: var(--coin);
+    color: var(--tc);
   }
   .boost .track { flex: 1; min-width: 20px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
-  .boost .fill { height: 100%; background: var(--coin); transform-origin: left center; }
+  .boost .fill { height: 100%; background: var(--tc); transform-origin: left center; }
   .boost .time { min-width: 4ch; text-align: right; font-variant-numeric: tabular-nums; }
   .boost.low .time, .boost.low .tag { animation: blink 500ms steps(2) infinite; }
   @keyframes blink { 50% { opacity: .35; } }
@@ -348,6 +359,63 @@
   }
   .well-wrap.thud { animation: thud 130ms ease-out; }
   .well-wrap.boom { animation: boom 480ms ease-out; }
+  .well-wrap.nope { animation: nope 220ms ease-out; }
+  @keyframes nope { 25% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: inset 0 0 44px 10px rgba(240, 70, 60, .75);
+  }
+  .vignette.show { animation: vignette 1600ms ease-out forwards; }
+  @keyframes vignette { 0% { opacity: 0; } 10% { opacity: 1; } 25% { opacity: .35; } 40% { opacity: 1; } 100% { opacity: 0; } }
+  .debuff-banner {
+    position: absolute;
+    left: 7%; right: 7%; top: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 12px;
+    text-align: center;
+    border-radius: 8px;
+    color: var(--on-well);
+    background: rgba(26, 10, 16, .92);
+    border: 2px solid #F06A5F;
+    box-shadow: 0 0 32px rgba(240, 106, 95, .45);
+    pointer-events: none;
+    opacity: 0;
+  }
+  .debuff-banner svg { width: 34px; height: 34px; fill: none; stroke: #F06A5F; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .debuff-banner .eyebrow { font-family: var(--f-display); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: #F06A5F; }
+  .debuff-banner h3 {
+    margin: 0;
+    font-family: var(--f-display);
+    font-weight: 800;
+    font-size: clamp(17px, 5vw, 24px);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  .debuff-banner p { margin: 0; font-size: 12px; line-height: 1.4; opacity: .82; }
+  .debuff-banner.show { animation: debuffIn 1600ms cubic-bezier(.2, .9, .3, 1.2) forwards; }
+  @keyframes debuffIn {
+    0% { opacity: 0; transform: scale(1.7) rotate(-4deg); }
+    14% { opacity: 1; transform: scale(.94) rotate(1deg); }
+    22% { transform: scale(1.03) rotate(0deg); }
+    30% { transform: scale(1); }
+    82% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(.96) translateY(-8px); }
+  }
+
+  .debuff-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 12px; }
+  .debuff-list li { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: start; }
+  .debuff-list svg { width: 16px; height: 16px; margin-top: 1px; fill: none; stroke: var(--debuff); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .debuff-list b { font-weight: 600; }
+  .debuff-list span { grid-column: 2; color: var(--muted); font-size: 11px; line-height: 1.35; }
   @keyframes boom {
     10% { transform: translate(-6px, 4px) rotate(-.6deg); }
     25% { transform: translate(7px, -5px) rotate(.6deg); }
@@ -393,7 +461,8 @@
   @media (prefers-reduced-motion: reduce) {
     .callout.show { animation: fade 1200ms linear forwards; }
     .callout .combo { animation: none; transform: rotate(-6deg); }
-    .well-wrap.thud, .well-wrap.boom { animation: none; }
+    .well-wrap.thud, .well-wrap.boom, .well-wrap.nope { animation: none; }
+    .debuff-banner.show { animation: fade 1600ms linear forwards; }
     .spark { animation: none; }
     .boost.low .time, .boost.low .tag { animation: none; }
   }
@@ -450,6 +519,8 @@
     .stat dt { font-size: 10px; letter-spacing: .12em; }
     .stat dd, .stat.score dd { font-size: 16px; }
     .pts-box, .keys-box { display: none; }
+    .timers.two .boost .track { display: none; }
+    .timers.two .boost { justify-content: space-between; padding-inline: 8px; }
     .slot { height: 52px; }
     .slot svg { width: 36px; height: 36px; }
     .slot-hint { display: none; }
@@ -510,14 +581,43 @@
     </section>
 
     <div class="board-col">
-    <div class="boost" id="boost" aria-hidden="true">
-      <span class="tag">2× Coins</span>
-      <span class="track"><span class="fill" id="boostFill"></span></span>
-      <span class="time" id="boostTime">30 s</span>
+    <div class="timers" id="timers" aria-hidden="true">
+      <div class="boost" id="boost">
+        <span class="ico"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v6"/></svg></span>
+        <span class="tag">2× Coins</span>
+        <span class="track"><span class="fill" id="boostFill"></span></span>
+        <span class="time" id="boostTime">30 s</span>
+      </div>
+      <div class="boost slow" id="slow">
+        <span class="ico"><svg viewBox="0 0 16 16"><path d="M1.5 13h12"/><circle cx="7" cy="8.5" r="4"/><path d="M7 8.5a1.5 1.5 0 1 1 1.5-1.5"/><path d="M11 10l2.5-5"/></svg></span>
+        <span class="tag">Schnecke</span>
+        <span class="track"><span class="fill" id="slowFill"></span></span>
+        <span class="time" id="slowTime">10 s</span>
+      </div>
+      <div class="boost debuff" id="rev">
+        <span class="ico"><svg viewBox="0 0 16 16"><path d="M3 5.5h10M10 3l3 2.5L10 8"/><path d="M13 10.5H3M6 8l-3 2.5L6 13"/></svg></span>
+        <span class="tag">Umgekehrt</span>
+        <span class="track"><span class="fill" id="revFill"></span></span>
+        <span class="time" id="revTime">20 s</span>
+      </div>
+      <div class="boost debuff" id="fog">
+        <span class="ico"><svg viewBox="0 0 16 16"><path d="M2 5.5h8M4 8.5h10M2 11.5h9"/></svg></span>
+        <span class="tag">Blackout</span>
+        <span class="track"><span class="fill" id="fogFill"></span></span>
+        <span class="time" id="fogTime">20 s</span>
+      </div>
+      <div class="boost debuff" id="nc">
+        <span class="ico"><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span>
+        <span class="tag">No Control</span>
+        <span class="track"><span class="fill" id="ncFill"></span></span>
+        <span class="time" id="ncTime">3</span>
+      </div>
     </div>
     <div class="well-wrap" id="wellWrap">
       <canvas id="board" role="img" aria-label="Spielfeld, 10 mal 20 Felder"></canvas>
       <div class="callout" id="callout" aria-hidden="true"></div>
+      <div class="vignette" id="vignette" aria-hidden="true"></div>
+      <div class="debuff-banner" id="debuffBanner" role="status" aria-live="polite"></div>
       <div class="overlay" id="overlay">
         <div class="ov-main" id="ovMain">
           <h2 id="ovTitle">Bereit?</h2>
@@ -545,6 +645,15 @@
       <div class="box">
         <h2 class="label">Nächste</h2>
         <canvas class="mini" id="next" aria-label="Nächste Steine"></canvas>
+      </div>
+      <div class="box pts-box">
+        <h2 class="label">Debuffs</h2>
+        <ul class="debuff-list">
+          <li><svg viewBox="0 0 16 16"><path d="M3 5.5h10M10 3l3 2.5L10 8"/><path d="M13 10.5H3M6 8l-3 2.5L6 13"/></svg><b>Umgekehrte Steuerung</b><span>20 s: links ist rechts, Drehen andersrum</span></li>
+          <li><svg viewBox="0 0 16 16"><path d="M2 5.5h8M4 8.5h10M2 11.5h9"/></svg><b>Blackout</b><span>20 s dichte Nebelwolken über dem Feld</span></li>
+          <li><svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><b>No Control</b><span>Die nächsten 3 Steine lassen sich nicht drehen</span></li>
+        </ul>
+        <p class="pts-note">Alle 500 Punkte trifft dich einer davon zufällig. Nächster bei <span id="nextDebuff">500</span> Pkt.</p>
       </div>
       <div class="box keys-box">
         <h2 class="label">Steuerung</h2>
@@ -636,6 +745,30 @@
   let coins = 0;
   let bombs = 0;
   let boostMs = 0, boostTotal = 0;
+  let slowMs = 0, slowTotal = 0;
+  const SLOW_FACTOR = 0.7;
+
+  // Debuffs: one random debuff per 1000 points
+  const DEBUFF_EVERY = 500;
+  const DEBUFF_INTRO_MS = 1600;
+  const REVERSE_MS = 20000;
+  const FOG_MS = 20000, FOG_IN_MS = 3000, FOG_OUT_MS = 1200;
+  const NO_CONTROL_PIECES = 3;
+  const DEBUFF_ICONS = {
+    reverse: '<svg viewBox="0 0 16 16"><path d="M3 5.5h10M10 3l3 2.5L10 8"/><path d="M13 10.5H3M6 8l-3 2.5L6 13"/></svg>',
+    blackout: '<svg viewBox="0 0 16 16"><path d="M2 5.5h8M4 8.5h10M2 11.5h9"/></svg>',
+    nocontrol: '<svg viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="6.5" rx="1.2"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>',
+  };
+  const DEBUFF_INFO = {
+    reverse: ['Umgekehrte Steuerung', '20 Sekunden: links ist rechts, Drehen geht andersrum.'],
+    blackout: ['Blackout', 'Dichter Nebel zieht auf. Sobald er das Feld bedeckt, laufen 20 Sekunden.'],
+    nocontrol: ['No Control', 'Die nächsten 3 Steine lassen sich nicht drehen.'],
+  };
+  let debuffMark = 0, debuffPending = 0, debuffIntro = 0;
+  let reverseMs = 0, reverseTotal = 0;
+  let fog = null; // { phase: 'in' | 'on' | 'out', t, ms, total }
+  let noControl = 0, ncTotal = 0, holdLocked = false;
+  const heldAs = {};
   let bombing = null; // null | 'fly' | 'boom'
   let boomFx = null;
   let flyer = null;
@@ -676,8 +809,8 @@
   const grounded = () => cur && collide(cur.type, cur.rot, cur.x, cur.y + 1);
   const gravityMs = lvl => Math.pow(Math.max(0.8 - (lvl - 1) * 0.007, 0.05), lvl - 1) * 1000;
 
-  function spawnPiece(type) {
-    cur = { type, rot: 0, x: type === 'O' ? 4 : 3, y: 0 };
+  function spawnPiece(type, locked) {
+    cur = { type, rot: 0, x: type === 'O' ? 4 : 3, y: 0, locked: !!locked };
     lockTimer = 0; lockResets = 0; dropAcc = 0;
     if (collide(type, 0, cur.x, cur.y)) { gameOver(); return false; }
     if (!collide(type, 0, cur.x, 1)) cur.y = 1;
@@ -687,7 +820,9 @@
   function nextPiece() {
     refillQueue();
     canHold = true;
-    spawnPiece(queue.shift());
+    const locked = noControl > 0;
+    if (locked) noControl--;
+    spawnPiece(queue.shift(), locked);
   }
 
   function afterAction() {
@@ -701,6 +836,7 @@
   }
   function rotate(dir) {
     if (!cur) return;
+    if (cur.locked) { nope(); return; }
     const from = cur.rot, to = (from + dir + 4) % 4;
     if (cur.type === 'O') return;
     const kicks = (cur.type === 'I' ? KICK_I : KICK_JLSTZ)['' + from + to];
@@ -724,13 +860,15 @@
   }
   function holdPiece() {
     if (!cur || !canHold) return;
-    const t = cur.type;
+    const t = cur.type, tLocked = !!cur.locked;
     if (hold) {
-      const h = hold;
+      const h = hold, hLocked = holdLocked;
       hold = t;
-      spawnPiece(h);
+      holdLocked = tLocked;
+      spawnPiece(h, hLocked);
     } else {
       hold = t;
+      holdLocked = tLocked;
       nextPiece();
     }
     canHold = false;
@@ -788,11 +926,16 @@
 
   function update(dt) {
     if (state !== 'playing') return;
+    if (debuffIntro > 0) { debuffIntro -= dt; return; }
     if (boostMs > 0) boostMs = Math.max(0, boostMs - dt);
+    if (slowMs > 0) slowMs = Math.max(0, slowMs - dt);
+    if (reverseMs > 0) reverseMs = Math.max(0, reverseMs - dt);
+    stepFog(dt);
     if (bombing) {
       if (bombing === 'boom') stepBoom(dt);
       return;
     }
+    if (checkDebuffs()) return;
     if (clearing) {
       clearing.t += dt;
       if (clearing.t >= CLEAR_MS) finishClear();
@@ -811,7 +954,7 @@
       }
     }
 
-    const g = gravityMs(level);
+    const g = gravityMs(level) / (slowMs > 0 ? SLOW_FACTOR : 1);
     const soft = input.soft && g > SOFT_MS;
     const interval = soft ? SOFT_MS : g;
     dropAcc += dt;
@@ -909,7 +1052,17 @@
     }
   }
 
-  function renderMini(cv, types, dimFirst) {
+  function drawLockIcon(c, x, y, size) {
+    c.fillStyle = '#F06A5F';
+    c.strokeStyle = '#F06A5F';
+    c.lineWidth = Math.max(1, size * 0.16);
+    c.beginPath();
+    c.arc(x + size / 2, y + size * 0.48, size * 0.28, Math.PI, 0);
+    c.stroke();
+    c.fillRect(x, y + size * 0.45, size, size * 0.55);
+  }
+
+  function renderMini(cv, types, dimFirst, lockedSlots = 0) {
     fit(cv);
     const c = cv.getContext('2d');
     const W = cv.width, H = cv.height;
@@ -925,7 +1078,12 @@
       const ox = (W - w * cs) / 2;
       const oy = (i * 2.5 + 1.25) * unit - (h * cs) / 2;
       const color = dimFirst && i === 0 ? DEAD : COLORS[t];
+      if (i < lockedSlots) {
+        c.fillStyle = 'rgba(240,106,95,0.16)';
+        c.fillRect(0, i * 2.5 * unit, W, 2.5 * unit);
+      }
       for (const [x, y] of cells) block(c, ox + (x - minx) * cs, oy + (y - miny) * cs, cs, color);
+      if (i < lockedSlots) drawLockIcon(c, W - unit * 0.75, i * 2.5 * unit + unit * 0.3, unit * 0.45);
     });
   }
 
@@ -944,6 +1102,7 @@
     setText('coins', fmt(coins));
     syncInventory();
     syncBoost();
+    setText('nextDebuff', fmt((Math.floor(s / DEBUFF_EVERY) + 1) * DEBUFF_EVERY));
     const tier = coinTier(s);
     if (shown.tier !== tier) {
       shown.tier = tier;
@@ -961,9 +1120,11 @@
 
   function render() {
     renderBoard();
+    drawLockedPiece();
+    drawFog();
     drawBoom();
-    renderMini(holdCv, [hold], hold && !canHold && state === 'playing');
-    renderMini(nextCv, queue ? queue.slice(0, 3) : [], false);
+    renderMini(holdCv, [hold], hold && !canHold && state === 'playing', holdLocked ? 1 : 0);
+    renderMini(nextCv, queue ? queue.slice(0, 3) : [], false, Math.min(3, noControl));
     syncStats();
   }
 
@@ -1010,10 +1171,16 @@
       buy: () => { bombs++; },
     },
     {
-      id: 'double', name: 'Goldrush', price: 200, // TODO: back to 500 after testing
+      id: 'double', name: 'Goldrush', price: 500,
       desc: 'Doppelte Coins: 30 Sekunden lang bringt jede Reihe doppelt so viele Coins. Läuft ab dem Weiterspielen, nochmal kaufen verlängert um 30 s.',
       can: () => true,
       buy: () => { boostMs += 30000; boostTotal = boostMs; },
+    },
+    {
+      id: 'slow', name: 'Schnecke', price: 500,
+      desc: '10 Sekunden lang fallen die Steine nur mit 70 % Tempo. Läuft ab dem Weiterspielen, nochmal kaufen verlängert um 10 s.',
+      can: () => true,
+      buy: () => { slowMs += 10000; slowTotal = slowMs; },
     },
   ];
 
@@ -1231,15 +1398,189 @@
     }
   }
 
-  // ---------- double coins timer ----------
-  const boostEl = $('boost'), boostFill = $('boostFill');
+  // ---------- debuffs ----------
+  const debuffBanner = $('debuffBanner'), vignette = $('vignette');
+
+  function checkDebuffs() {
+    const mark = Math.floor(score / DEBUFF_EVERY);
+    if (mark > debuffMark) { debuffPending += mark - debuffMark; debuffMark = mark; }
+    if (debuffPending <= 0 || clearing) return false;
+    debuffPending--;
+    const types = Object.keys(DEBUFF_INFO);
+    applyDebuff(types[Math.floor(Math.random() * types.length)]);
+    return true;
+  }
+
+  function applyDebuff(type) {
+    if (type === 'reverse') {
+      reverseMs += REVERSE_MS;
+      reverseTotal = reverseMs;
+    } else if (type === 'blackout') {
+      if (!fog) {
+        fog = { phase: 'in', t: 0, ms: FOG_MS, total: FOG_MS };
+      } else {
+        fog.ms += FOG_MS;
+        fog.total = Math.max(fog.total, fog.ms);
+        if (fog.phase === 'out') { fog.phase = 'in'; fog.t = FOG_IN_MS * (1 - fog.t / FOG_OUT_MS); }
+      }
+    } else {
+      noControl += NO_CONTROL_PIECES;
+      ncTotal = noControlLeft();
+    }
+    releaseAll();
+    showDebuffBanner(type);
+    debuffIntro = DEBUFF_INTRO_MS;
+  }
+
+  function showDebuffBanner(type) {
+    const [name, text] = DEBUFF_INFO[type];
+    debuffBanner.innerHTML = DEBUFF_ICONS[type];
+    const eyebrow = document.createElement('span');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = 'Debuff';
+    const h = document.createElement('h3');
+    h.textContent = name;
+    const p = document.createElement('p');
+    p.textContent = text;
+    debuffBanner.append(eyebrow, h, p);
+    for (const el of [debuffBanner, vignette]) {
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.classList.add('show');
+    }
+    wellWrap.classList.remove('boom');
+    void wellWrap.offsetWidth;
+    wellWrap.classList.add('boom');
+  }
+
+  function nope() {
+    wellWrap.classList.remove('nope');
+    void wellWrap.offsetWidth;
+    wellWrap.classList.add('nope');
+  }
+
+  const noControlLeft = () => noControl + (cur && cur.locked ? 1 : 0) + (holdLocked ? 1 : 0);
+
+  function stepFog(dt) {
+    if (!fog) return;
+    if (fog.phase === 'in') {
+      fog.t += dt;
+      if (fog.t >= FOG_IN_MS) { fog.phase = 'on'; fog.t = 0; }
+    } else if (fog.phase === 'on') {
+      fog.ms -= dt;
+      if (fog.ms <= 0) { fog.phase = 'out'; fog.t = 0; fog.ms = 0; }
+    } else {
+      fog.t += dt;
+      if (fog.t >= FOG_OUT_MS) fog = null;
+    }
+  }
+
+  const smooth = x => { const k = Math.min(Math.max(x, 0), 1); return k * k * (3 - 2 * k); };
+
+  // Fog is a low-res density field (moving value noise), blurred and stretched over the board
+  const FOG_W = 30, FOG_H = 60;
+  const fogCv = document.createElement('canvas');
+  fogCv.width = FOG_W; fogCv.height = FOG_H;
+  const fogCtx = fogCv.getContext('2d');
+  const fogImg = fogCtx.createImageData(FOG_W, FOG_H);
+
+  function hash2(x, y) {
+    let h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+  }
+  function vnoise(x, y) {
+    const xi = Math.floor(x), yi = Math.floor(y);
+    const xf = x - xi, yf = y - yi;
+    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    const a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+
+  function drawFog() {
+    if (!fog) return;
+    const c = boardCv.getContext('2d');
+    const W = boardCv.width, H = boardCv.height;
+    const t = performance.now() / 1000;
+    // Rolling in: the fog front moves down from the top until it covers the field
+    const front = fog.phase === 'in' ? smooth(fog.t / FOG_IN_MS) * 1.3 : 2;
+    const strength = fog.phase === 'out' ? 1 - fog.t / FOG_OUT_MS : 1;
+
+    // The whole cloud mass wanders around; each octave drifts its own way so patches thicken and thin out
+    const wx = t * 0.45 + 1.6 * Math.sin(t * 0.21);
+    const wy = t * 0.16 + 1.3 * Math.cos(t * 0.17);
+    const data = fogImg.data;
+    for (let j = 0; j < FOG_H; j++) {
+      const fy = j / (FOG_H - 1);
+      const reach = smooth((front - fy) / 0.22) * strength;
+      for (let i = 0; i < FOG_W; i++) {
+        const x = i / FOG_W * 2.6, y = fy * 5.2;
+        const n =
+          0.55 * vnoise(x + wx, y + wy) +
+          0.30 * vnoise(x * 2.1 - t * 0.55 + 11, y * 2.1 + t * 0.32 + 7) +
+          0.15 * vnoise(x * 4.3 + t * 0.9 + 3, y * 4.3 - t * 0.7 + 13);
+        // dense patches block everything, thin patches still hide most of it
+        const dens = Math.min(1, Math.max(0, (n - 0.28) / 0.38));
+        const alpha = (0.74 + 0.26 * dens) * reach;
+        const k = (j * FOG_W + i) * 4;
+        data[k] = 190 + 50 * dens;
+        data[k + 1] = 196 + 47 * dens;
+        data[k + 2] = 206 + 42 * dens;
+        data[k + 3] = alpha * 255;
+      }
+    }
+    fogCtx.putImageData(fogImg, 0, 0);
+
+    c.save();
+    c.imageSmoothingEnabled = true;
+    c.imageSmoothingQuality = 'high';
+    c.filter = `blur(${Math.round(W / 45)}px)`;
+    // draw a bit larger than the board so the blur does not fade out at the edges
+    c.drawImage(fogCv, -W * 0.06, -H * 0.03, W * 1.12, H * 1.06);
+    c.restore();
+  }
+
+  function drawLockedPiece() {
+    if (!cur || !cur.locked || state === 'over') return;
+    const c = boardCv.getContext('2d');
+    const W = boardCv.width, H = boardCv.height;
+    const s = W / COLS, sy = H / (ROWS - HIDDEN);
+    const lw = Math.max(1.5, s * 0.09);
+    c.strokeStyle = 'rgba(240,106,95,0.95)';
+    c.lineWidth = lw;
+    for (const [cx, cy] of ROT[cur.type][cur.rot]) {
+      const py = (cur.y + cy - HIDDEN) * sy;
+      if (py < 0) continue;
+      c.strokeRect((cur.x + cx) * s + lw / 2, py + lw / 2, s - lw, s - lw);
+    }
+  }
+
+  // ---------- timers above the board ----------
+  const timersEl = $('timers');
+  function syncPill(id, on, frac, text, low, waiting) {
+    const el = $(id);
+    el.classList.toggle('on', on);
+    if (!on) return 0;
+    el.classList.toggle('low', !!low);
+    el.classList.toggle('waiting', !!waiting);
+    $(id + 'Fill').style.transform = `scaleX(${frac})`;
+    setText(id + 'Time', text);
+    return 1;
+  }
+  const secs = ms => `${Math.ceil(ms / 1000)} s`;
   function syncBoost() {
-    const on = boostMs > 0 && state !== 'over';
-    boostEl.classList.toggle('on', on);
-    if (!on) return;
-    boostEl.classList.toggle('low', boostMs <= 5000);
-    boostFill.style.transform = `scaleX(${boostTotal ? boostMs / boostTotal : 0})`;
-    setText('boostTime', `${Math.ceil(boostMs / 1000)} s`);
+    const live = state !== 'over';
+    const nc = noControlLeft();
+    const fogOn = !!fog && fog.phase !== 'out';
+    const fogFrac = fog ? (fog.phase === 'in' ? 1 : fog.ms / fog.total) : 0;
+    const n =
+      syncPill('boost', live && boostMs > 0, boostTotal ? boostMs / boostTotal : 0, secs(boostMs), boostMs <= 5000) +
+      syncPill('slow', live && slowMs > 0, slowTotal ? slowMs / slowTotal : 0, secs(slowMs), slowMs <= 3000) +
+      syncPill('rev', live && reverseMs > 0, reverseTotal ? reverseMs / reverseTotal : 0, secs(reverseMs), reverseMs <= 5000) +
+      syncPill('fog', live && fogOn, fogFrac, fog ? secs(fog.ms) : '', fog && fog.phase === 'on' && fog.ms <= 5000, fog && fog.phase === 'in') +
+      syncPill('nc', live && nc > 0, ncTotal ? nc / ncTotal : 0, timersEl.classList.contains('many') ? String(nc) : `${nc} ${nc === 1 ? 'Stein' : 'Steine'}`, nc === 1);
+    timersEl.classList.toggle('two', n === 2);
+    timersEl.classList.toggle('many', n >= 3);
   }
 
   // ---------- game states ----------
@@ -1287,6 +1628,15 @@
     document.querySelectorAll('.touch button.on').forEach(b => b.classList.remove('on'));
   }
 
+  function resetDebuffs() {
+    debuffMark = 0; debuffPending = 0; debuffIntro = 0;
+    reverseMs = 0; reverseTotal = 0;
+    fog = null;
+    noControl = 0; ncTotal = 0; holdLocked = false;
+    debuffBanner.classList.remove('show');
+    vignette.classList.remove('show');
+  }
+
   function startGame() {
     board = emptyBoard();
     queue = [];
@@ -1297,6 +1647,9 @@
     bombs = 0;
     boostMs = 0;
     boostTotal = 0;
+    slowMs = 0;
+    slowTotal = 0;
+    resetDebuffs();
     bombing = null;
     boomFx = null;
     removeFlyer();
@@ -1335,11 +1688,14 @@
   function press(act) {
     if (act === 'pause') { togglePause(); return; }
     if (act === 'bomb') { useBomb(); return; }
-    if (state !== 'playing' || !cur || bombing) {
+    if (state !== 'playing' || !cur || bombing || debuffIntro > 0) {
       if (act === 'down') input.soft = true;
       return;
     }
-    switch (act) {
+    const REVERSED = { left: 'right', right: 'left', cw: 'ccw', ccw: 'cw' };
+    const real = reverseMs > 0 && REVERSED[act] ? REVERSED[act] : act;
+    if (HELD.has(act)) heldAs[act] = real;
+    switch (real) {
       case 'left':  input.left = true;  input.dir = -1; input.das = 0; input.arr = 0; tryMove(-1, 0); break;
       case 'right': input.right = true; input.dir = 1;  input.das = 0; input.arr = 0; tryMove(1, 0); break;
       case 'down':  input.soft = true; break;
@@ -1349,7 +1705,10 @@
       case 'hold':  holdPiece(); break;
     }
   }
-  function release(act) {
+  function release(key) {
+    // release what the key actually pressed (it may have been reversed)
+    const act = heldAs[key] || key;
+    delete heldAs[key];
     if (act === 'left') {
       input.left = false;
       if (input.dir === -1) { input.dir = input.right ? 1 : 0; input.das = 0; input.arr = 0; }
@@ -1431,7 +1790,8 @@
 
   function snapshot() {
     return {
-      board, cur, queue, hold, canHold, score, lines, level, b2b, best, coins, bombs, boostMs, boostTotal,
+      board, cur, queue, hold, canHold, score, lines, level, b2b, best, coins, bombs, boostMs, boostTotal, slowMs, slowTotal,
+      debuffMark, debuffPending, reverseMs, reverseTotal, fog, noControl, ncTotal, holdLocked,
       state: state === 'playing' ? 'paused' : state,
     };
   }
@@ -1444,6 +1804,17 @@
       bombs = data.bombs || 0;
       boostMs = data.boostMs || 0;
       boostTotal = data.boostTotal || boostMs;
+      slowMs = data.slowMs || 0;
+      slowTotal = data.slowTotal || slowMs;
+      debuffMark = data.debuffMark || 0;
+      debuffPending = data.debuffPending || 0;
+      debuffIntro = 0;
+      reverseMs = data.reverseMs || 0;
+      reverseTotal = data.reverseTotal || reverseMs;
+      fog = data.fog || null;
+      noControl = data.noControl || 0;
+      ncTotal = data.ncTotal || 0;
+      holdLocked = !!data.holdLocked;
       bombing = null;
       boomFx = null;
       clearing = null;
